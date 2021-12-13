@@ -1,0 +1,72 @@
+{
+  "tree": [
+    {
+      "id": "node0",
+      "title": "node0",
+      "exclusiveChildren": true,
+      "checked": true,
+      "children": [
+        {
+          "id": "node1",
+          "title": "node1",
+          "description": "optional description",
+          "require": ["text1"],
+          "checked": true
+        },
+        {
+          "id": "node2",
+          "title": "node2",
+          "require": ["text1", "text0", "text2"],
+          "checked": false
+        },
+        {
+          "id": "node3",
+          "title": "node3",
+          "require": ["text3"],
+          "checked": false
+        },
+        {
+          "id": "node4",
+          "title": "node4",
+          "require": ["text4"],
+          "checked": false
+        }
+      ]
+    },
+    {
+      "id": "node5",
+      "title": "node5",
+      "require": ["text0"],
+      "checked": true,
+      "children": [
+        {
+          "id": "node6",
+          "title": "node6",
+          "require": ["text1", "text7"],
+          "checked": true,
+          "children": [
+            {
+              "id": "node7",
+              "title": "node7",
+              "require": ["text6"],
+              "checked": true
+            },
+            {
+              "id": "node8",
+              "title": "node8",
+              "require": ["text5"],
+              "description": "optional description",
+              "checked": false
+            }
+          ]
+        },
+        {
+          "id": "node9",
+          "title": "node9",
+          "require": ["text9"],
+          "checked": false
+        }
+      ]
+    }
+  ]
+}
