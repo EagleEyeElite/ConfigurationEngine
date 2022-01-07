@@ -31,7 +31,6 @@
   "browserslist": [
     "defaults"
   ],
-  "homepage": "/configurator/",
   "devDependencies": {
     "cross-env": "^7.0.3",
     "eslint-plugin-jest": "^24.5.2"
