@@ -188,7 +188,7 @@ export default class Generator extends React.Component<{}, State> {
     return <>
       <Box sx={{p: 6, background: theme => theme.design.background}}>
         <Typography variant="h2" align="center" color="white">
-          Configuration Engine
+          Config Engine
         </Typography>
       </Box>
       <Box sx={{
