@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: configuration-engine
+  labels:
+    app: configuration-engine
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: configuration-engine
+  template:
+    metadata:
+      labels:
+        app: configuration-engine
+    spec:
+      containers:
+        - name: web
+          image: localhost/configuration-engine:latest
+          imagePullPolicy: Never  # built and imported via build-k3s-image.sh
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: "10m"
+              memory: "16Mi"
+            limits:
+              memory: "64Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: configuration-engine
+spec:
+  type: ClusterIP
+  selector:
+    app: configuration-engine
+  ports:
+    - port: 80
+      targetPort: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: configuration-engine
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: configurator.conrad-klaus.de
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: configuration-engine
+                port:
+                  number: 80
