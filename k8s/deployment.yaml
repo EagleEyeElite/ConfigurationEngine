@@ -16,8 +16,8 @@ spec:
     spec:
       containers:
         - name: web
-          image: localhost/configuration-engine:latest
-          imagePullPolicy: Never  # built and imported via build-k3s-image.sh
+          image: registry.k8s.ts.conrad-klaus.de/configuration-engine:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 80
           resources:
