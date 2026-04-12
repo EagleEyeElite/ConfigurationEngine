@@ -14,6 +14,13 @@ spec:
       labels:
         app: configuration-engine
     spec:
+      tolerations:
+        - key: "workload-type"
+          operator: "Equal"
+          value: "untrusted"
+          effect: "NoSchedule"
+      nodeSelector:
+        kubernetes.io/hostname: k3s-apps
       containers:
         - name: web
           image: registry.k8s.ts.conrad-klaus.de/configuration-engine:latest
@@ -43,8 +50,14 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: configuration-engine
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-cloudflare
 spec:
   ingressClassName: nginx
+  tls:
+    - hosts:
+        - configurator.conrad-klaus.de
+      secretName: configurator-tls
   rules:
     - host: configurator.conrad-klaus.de
       http:
