@@ -53,7 +53,7 @@ metadata:
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-cloudflare
 spec:
-  ingressClassName: nginx
+  ingressClassName: traefik
   tls:
     - hosts:
         - configurator.conrad-klaus.de
