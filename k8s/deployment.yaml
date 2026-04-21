@@ -52,6 +52,12 @@ metadata:
   name: configuration-engine
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-cloudflare
+    # Opt into the public Traefik entrypoints. The k3s cluster (managed
+    # by personal-infrastructure) is deny-by-default for public exposure:
+    # an Ingress without this annotation attaches only to websecure-ts
+    # and becomes Tailscale-only. `web` picks up port-80 requests for
+    # the entrypoint-level 308 redirect to HTTPS.
+    traefik.ingress.kubernetes.io/router.entrypoints: "web,websecure"
 spec:
   ingressClassName: traefik
   tls:
