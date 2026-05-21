@@ -23,7 +23,7 @@ spec:
         kubernetes.io/hostname: k3s-apps-vm
       containers:
         - name: web
-          image: registry.k8s.ts.conrad-klaus.de/configuration-engine:latest
+          image: registry.k8s.gated.conrad-klaus.de/configuration-engine:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 80
