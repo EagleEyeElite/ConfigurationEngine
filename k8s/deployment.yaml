@@ -70,6 +70,14 @@ metadata:
     # and becomes Tailscale-only. `web` picks up port-80 requests for
     # the entrypoint-level 308 redirect to HTTPS.
     traefik.ingress.kubernetes.io/router.entrypoints: "web,websecure"
+    # cloudflare-only WAF allowlist. Required since 2026-06-26: it moved off
+    # the Traefik websecure entrypoint default to a per-public-router
+    # middleware (so the unlisted hanna.hidden host could opt out — Traefik
+    # can't exempt one router from an entrypoint middleware). Without this,
+    # this public app is reachable directly on the WAN IP, bypassing the
+    # Cloudflare WAF. Middleware lives in kube-system (personal-infrastructure).
+    # Apply this manifest BEFORE `pulumi up` removes the entrypoint default.
+    traefik.ingress.kubernetes.io/router.middlewares: kube-system-cloudflare-only@kubernetescrd
 spec:
   ingressClassName: traefik
   tls:
