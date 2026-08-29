@@ -23,10 +23,14 @@ RUN yarn build
 
 # Stage 2: Serve the build using Nginx
 # 2026-04-12: Updated from alpine3.17 to alpine3.21 to fix OpenSSL/libexpat CVEs.
-FROM nginx:stable-alpine3.21
+# nginx-unprivileged (2026-08-29): identical nginx, but the master process
+# runs as uid 101 and listens on 8080 — no root phase, so the deployment can
+# satisfy the `restricted` Pod Security Standard enforced on the default
+# namespace.
+FROM nginxinc/nginx-unprivileged:stable-alpine3.21
 
 COPY --from=builder /home/node/app/build /usr/share/nginx/html/
 
-EXPOSE 80
+EXPOSE 8080
 
 CMD ["nginx", "-g", "daemon off;"]
