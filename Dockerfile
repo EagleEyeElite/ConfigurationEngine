@@ -28,6 +28,11 @@ RUN yarn build
 # satisfy the `restricted` Pod Security Standard enforced on the default
 # namespace.
 FROM nginxinc/nginx-unprivileged:stable-alpine3.21
+USER root
+# Patch OS packages to the current Alpine security level (the base ships an
+# older snapshot — openssl 3.3.5 vs the repo's fixed 3.3.7-r0 for CVE-2026-31789).
+RUN apk update && apk upgrade --no-cache
+USER 101
 
 COPY --from=builder /home/node/app/build /usr/share/nginx/html/
 
