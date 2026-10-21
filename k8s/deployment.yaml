@@ -1,7 +1,14 @@
+# Deployed into its own namespace, `configurator`, which personal-infrastructure
+# owns (src/self-hosted/app-namespaces.ts): default-deny network policies,
+# the restricted Pod Security Standard, the access middlewares, and the way
+# in from Traefik. This file owns what runs inside it.
+#
+#   kubectl apply -f k8s/deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: configuration-engine
+  namespace: configurator
   labels:
     app: configuration-engine
 spec:
@@ -22,7 +29,7 @@ spec:
       nodeSelector:
         kubernetes.io/hostname: k3s-apps-vm
       # The image (nginx-unprivileged) runs as uid 101 on port 8080; the
-      # default namespace enforces the `restricted` Pod Security Standard.
+      # namespace enforces the `restricted` Pod Security Standard.
       securityContext:
         runAsNonRoot: true
         runAsUser: 101
@@ -38,7 +45,8 @@ spec:
             capabilities:
               drop: ["ALL"]
           ports:
-            - containerPort: 8080
+            - name: http
+              containerPort: 8080
           resources:
             requests:
               cpu: "10m"
@@ -50,48 +58,38 @@ apiVersion: v1
 kind: Service
 metadata:
   name: configuration-engine
+  namespace: configurator
 spec:
   type: ClusterIP
   selector:
     app: configuration-engine
   ports:
-    - port: 80
-      targetPort: 8080
+    - name: http
+      port: 80
+      targetPort: http
 ---
-apiVersion: networking.k8s.io/v1
-kind: Ingress
+# Public through Cloudflare. The host's listener on the `public` Gateway, and
+# its certificate, come from personal-infrastructure (public.ts lists the
+# host for this namespace); the cluster refuses this route without the
+# cloudflare-only filter.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
 metadata:
   name: configuration-engine
-  annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-cloudflare
-    # Opt into the public Traefik entrypoints. The k3s cluster (managed
-    # by personal-infrastructure) is deny-by-default for public exposure:
-    # an Ingress without this annotation attaches only to websecure-ts
-    # and becomes Tailscale-only. `web` picks up port-80 requests for
-    # the entrypoint-level 308 redirect to HTTPS.
-    traefik.ingress.kubernetes.io/router.entrypoints: "web,websecure"
-    # cloudflare-only WAF allowlist. Required since 2026-06-26: it moved off
-    # the Traefik websecure entrypoint default to a per-public-router
-    # middleware (so the unlisted hanna.hidden host could opt out — Traefik
-    # can't exempt one router from an entrypoint middleware). Without this,
-    # this public app is reachable directly on the WAN IP, bypassing the
-    # Cloudflare WAF. Middleware lives in kube-system (personal-infrastructure).
-    # Apply this manifest BEFORE `pulumi up` removes the entrypoint default.
-    traefik.ingress.kubernetes.io/router.middlewares: kube-system-cloudflare-only@kubernetescrd
+  namespace: configurator
 spec:
-  ingressClassName: traefik
-  tls:
-    - hosts:
-        - configurator.conrad-klaus.de
-      secretName: configurator-tls
+  parentRefs:
+    - name: public
+      namespace: kube-system
+  hostnames:
+    - configurator.conrad-klaus.de
   rules:
-    - host: configurator.conrad-klaus.de
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: configuration-engine
-                port:
-                  number: 80
+    - filters:
+        - type: ExtensionRef
+          extensionRef:
+            group: traefik.io
+            kind: Middleware
+            name: cloudflare-only
+      backendRefs:
+        - name: configuration-engine
+          port: 80
